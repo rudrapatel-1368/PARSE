@@ -23,6 +23,7 @@ def ingest_input(data: BusinessInput):
         return {"Error" : "Please provide more info"}
     return {"returned" : data.raw_text}
 
+#********************************************** STAGE 1 *********************************************************#
 #Calling an actual API of gemini
 load_dotenv()
 Gkey = os.getenv("GEMINI_API_KEY")
@@ -36,6 +37,7 @@ class StrContext(BaseModel):
     goals: list[str]
     constraints: list[str]
 
+#********************************************** STAGE 2 *********************************************************#
 #Creating a structure
 @app.post("/structure")
 def str_context(data: BusinessInput):
@@ -63,8 +65,9 @@ class Recommendation(BaseModel):
 class RecommendationList(BaseModel):
     recommendations: list[Recommendation]
 
+#********************************************** STAGE 3 *********************************************************#
 @app.post("/recomend")
-def recomend(data: StrContext):
+def recommend(data: StrContext):
     prompt = f"""Based on this business context, suggest 2-3 recommendations.
     Each recommendation MUST address a specific pain point or goal listed below —
     do not suggest anything that isn't grounded in this context.
@@ -82,6 +85,40 @@ def recomend(data: StrContext):
     try:
         parsed = json.loads(response.text)
         validated = RecommendationList(**parsed)
+    except (json.JSONDecodeError, Exception) as e:
+        return {"error": "Gemini didn't return a valid recommendation list", "raw": response.text}
+
+    return validated
+
+#******************************************** STAGE 4 ***************************************************#
+
+class SolBlueprint(BaseModel):
+    solution_name: str
+    components: list[str]
+    workflow: list[str]
+    diagram: str
+
+@app.post("/solution")
+def solution(data: Recommendation):
+    prompt = f"""Design a simple, buildable solution for this recommendation.
+    Keep it realistic for a small team to build in days, not months — no enterprise-grade architecture.
+
+    Return ONLY valid JSON, no extra text, in this exact shape:
+    {{"solution_name": "...", "components": ["..."], "workflow": ["..."], "diagram": "mermaid syntax here"}}
+
+    The "diagram" field must contain valid Mermaid flowchart syntax as a single string, e.g.:
+    "flowchart TD\\n  A[Start] --> B[End]"
+
+    Recommendation: {data.title}
+    Addresses: {data.addresses}
+    Reasoning: {data.reasoning}
+    Priority: {data.priority}"""
+
+    response = model.generate_content(prompt)
+
+    try:
+        parsed = json.loads(response.text)
+        validated = SolBlueprint(**parsed)
     except (json.JSONDecodeError, Exception) as e:
         return {"error": "Gemini didn't return a valid recommendation list", "raw": response.text}
 
