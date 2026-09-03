@@ -30,11 +30,11 @@ Gkey = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=Gkey)
 model = genai.GenerativeModel("gemini-3.6-flash")
 
-class StrContext():
+class StrContext(BaseModel):
     industry: str
     pain_points: list[str]
     goals: list[str]
-    constrains: list[str]
+    constraints: list[str]
 
 #Creating a structure
 @app.post("/structure")
@@ -54,4 +54,35 @@ def str_context(data: BusinessInput):
     
     return sturctured
     #Any real api call will give you multiple things like token usage, meta data etc. with the text so we seperate it by using .
-        
+class Recommendation(BaseModel):
+    title: str
+    addresses: str
+    reasoning: str
+    priority: str
+
+class RecommendationList(BaseModel):
+    recommendations: list[Recommendation]
+
+@app.post("/recomend")
+def recomend(data: StrContext):
+    prompt = f"""Based on this business context, suggest 2-3 recommendations.
+    Each recommendation MUST address a specific pain point or goal listed below —
+    do not suggest anything that isn't grounded in this context.
+
+    Return ONLY valid JSON, no extra text, in this exact shape:
+    {{"recommendations": [{{"title": "...", "addresses": "...", "reasoning": "...", "priority": "high/medium/low"}}]}}
+
+    Industry: {data.industry}
+    Pain points: {data.pain_points}
+    Goals: {data.goals}
+    Constraints: {data.constraints}"""
+
+    response = model.generate_content(prompt)
+
+    try:
+        parsed = json.loads(response.text)
+        validated = RecommendationList(**parsed)
+    except (json.JSONDecodeError, Exception) as e:
+        return {"error": "Gemini didn't return a valid recommendation list", "raw": response.text}
+
+    return validated
