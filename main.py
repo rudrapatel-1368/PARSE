@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 import google.generativeai as genai
 import json
+from fastapi import Response
 
 class BusinessInput(BaseModel):
     raw_text: str
@@ -123,3 +124,39 @@ def solution(data: Recommendation):
         return {"error": "Gemini didn't return a valid recommendation list", "raw": response.text}
 
     return validated
+
+    #******************************************** STAGE 5 ***************************************************#
+class ExportRequest(BaseModel):
+    context: StrContext
+    recommendations: RecommendationList
+    blueprint: SolBlueprint
+
+@app.post("/export")
+def export(data: ExportRequest):
+    rec_lines = ""
+    for rec in data.recommendations.recommendations:
+        rec_lines += f"- **{rec.title}** (priority: {rec.priority})\n  {rec.reasoning}\n\n"
+    comp_lines = f"**components:** {", ".join(data.blueprint.components)}\n **Workflow:** {"->".join(data.blueprint.workflow)}"
+    final_doc = f"""# Business Transformation Plan
+
+## Business Summary
+**Industry:** {data.context.industry}
+**Pain Points:** {", ".join(data.context.pain_points)}
+**Goals:** {", ".join(data.context.goals)}
+
+## Recommendations
+{rec_lines}
+
+## Selected Solution: {data.blueprint.solution_name}
+{comp_lines}
+
+### Diagram
+```mermaid
+{data.blueprint.diagram}
+```
+"""
+    return Response(
+        content=final_doc,
+        media_type="text/markdown", 
+        headers={"Content-Dicomposition" : "attachment; filename: solution.md"}
+    )
