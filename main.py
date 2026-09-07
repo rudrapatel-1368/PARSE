@@ -5,11 +5,18 @@ import os
 import google.generativeai as genai
 import json
 from fastapi import Response
+from fastapi.middleware.cors import CORSMiddleware
 
 class BusinessInput(BaseModel):
     raw_text: str
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #This will run at the start
 @app.get("/")        
@@ -158,5 +165,5 @@ def export(data: ExportRequest):
     return Response(
         content=final_doc,
         media_type="text/markdown", 
-        headers={"Content-Dicomposition" : "attachment; filename: solution.md"}
+        headers={"Content-Disposition" : "attachment; filename: solution.md"}
     )
