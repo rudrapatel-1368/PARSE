@@ -74,7 +74,7 @@ class RecommendationList(BaseModel):
     recommendations: list[Recommendation]
 
 #********************************************** STAGE 3 *********************************************************#
-@app.post("/recomend")
+@app.post("/recommend")
 def recommend(data: StrContext):
     prompt = f"""Based on this business context, suggest 2-3 recommendations.
     Each recommendation MUST address a specific pain point or goal listed below —
