@@ -29,6 +29,20 @@ async function structure()
     })
     let data2 = await response2.json()
     let recieved = JSON.stringify(data2)
-    document.getElementById("output").innerHTML = recieved;
+    return recieved
 }
-selected.addEventListener("click", structure)
+async function recommend()
+{
+    let value = await structure()
+    let responce3 = await fetch("http://127.0.0.1:8000/recommend", {
+        method: "POST", 
+        headers: {
+            "Content-Type" : "application/json"
+        },
+        body: value
+    })
+    let data3 = await responce3.json()
+    let recieved = JSON.stringify(data3)
+    document.getElementById("output").innerHTML = recieved;   
+}
+selected.addEventListener("click", recommend)
