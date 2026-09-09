@@ -7,6 +7,14 @@ import json
 from fastapi import Response
 from fastapi.middleware.cors import CORSMiddleware
 
+
+def clean_json(text):
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1]      # drop the first line (```json)
+        text = text.rsplit("```", 1)[0]     # drop the trailing ```
+    return text
+
 class BusinessInput(BaseModel):
     raw_text: str
 
@@ -58,7 +66,7 @@ def str_context(data: BusinessInput):
     responce = model.generate_content(prompt)
 
     try:
-        sturctured = json.loads(responce.text)
+        sturctured = json.loads(clean_json(responce.text))
     except json.JSONDecodeError:
         return {"Error" : "Gemini didnt give a valid Json", "raw" : responce.text}
     
@@ -91,7 +99,7 @@ def recommend(data: StrContext):
     response = model.generate_content(prompt)
 
     try:
-        parsed = json.loads(response.text)
+        parsed = json.loads(clean_json(response.text))
         validated = RecommendationList(**parsed)
     except (json.JSONDecodeError, Exception) as e:
         return {"error": "Gemini didn't return a valid recommendation list", "raw": response.text}
@@ -125,7 +133,7 @@ def solution(data: Recommendation):
     response = model.generate_content(prompt)
 
     try:
-        parsed = json.loads(response.text)
+        parsed = json.loads(clean_json(response.text))
         validated = SolBlueprint(**parsed)
     except (json.JSONDecodeError, Exception) as e:
         return {"error": "Gemini didn't return a valid recommendation list", "raw": response.text}
