@@ -1,55 +1,86 @@
-async function read()
-{
-    let value = document.getElementById("input").value
-    console.log(value)
-    let response = await fetch("http://127.0.0.1:8000/ingest", {
-        method: "POST",
-        headers: {
-            "Content-Type" : "application/json"
-        },
-        body: JSON.stringify({"raw_text" : value})
-    })  
-    let data1 = await response.json()
-    console.log(data1)
-    
-    let returned = JSON.stringify(data1)
-    return returned
-}
+let API_BASE = "http://127.0.0.1:8000"
 let expoblue;
 let expocon;
 let currentRecommendations;
 let selected = document.getElementById("selected")
-selected.addEventListener("click", read)
+
+async function callapi(path, body)
+{
+    let response = await fetch(API_BASE + path, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body)
+    })
+
+    if (!response.ok)
+    {
+        throw new Error("Server returned " + response.status + " for " + path)
+    }
+
+    let data = await response.json()
+
+    if (data.Error)
+    {
+        throw new Error(data.Error)
+    }
+
+    return data
+}
+
+async function read()
+{
+    let value = document.getElementById("input").value
+    console.log(value)
+    try
+    {
+        let data1 = await callapi("/ingest", {"raw_text" : value})
+        console.log(data1)
+        return data1
+    }
+    catch (error)
+    {
+        console.error("ingest failed:", error)
+        document.getElementById("output").innerHTML = error.message
+        return null
+    }
+}
+
 async function structure()
 {
-   let returned = document.getElementById("input").value
-    let response2 = await fetch("http://127.0.0.1:8000/structure", {
-        method: "POST",
-        headers: {
-            "Content-Type" : "application/json"
-        },
-        body: JSON.stringify({"raw_text": returned})
-    })
-    let data2 = await response2.json()
-    let recieved = JSON.stringify(data2)
-    expocon = data2
-    return recieved
+    let returned = document.getElementById("input").value
+    try
+    {
+        let data2 = await callapi("/structure", {"raw_text": returned})
+        expocon = data2
+        return data2
+    }
+    catch (error)
+    {
+        console.error("structure failed:", error)
+        document.getElementById("output").innerHTML = error.message
+        return null
+    }
 }
+
 async function recommend()
 {
     let value = await structure()
-    let responce3 = await fetch("http://127.0.0.1:8000/recommend", {
-        method: "POST", 
-        headers: {
-            "Content-Type" : "application/json"
-        },
-        body: value
-    })
-    let data3 = await responce3.json()
-    let recieved = JSON.stringify(data3)
-    showRecommendations(data3.recommendations)
+    if (!value)
+    {
+        return
+    }
+    try
+    {
+        let data3 = await callapi("/recommend", value)
+        showRecommendations(data3.recommendations)
+    }
+    catch (error)
+    {
+        console.error("recommend failed:", error)
+        document.getElementById("output").innerHTML = error.message
+    }
 }
-selected.addEventListener("click", recommend)
+
 function showRecommendations(recommendations)
 {
     let html = ""
@@ -59,6 +90,10 @@ function showRecommendations(recommendations)
     document.getElementById("output").innerHTML = html
     currentRecommendations = recommendations
 }
+
+selected.addEventListener("click", read)
+selected.addEventListener("click", recommend)
+
 document.getElementById("output").addEventListener("click", async function(event) {
     let index = event.target.dataset.index
     console.log(index)
@@ -67,29 +102,40 @@ document.getElementById("output").addEventListener("click", async function(event
     {
         return
     }
-    let response4 = await fetch("http://127.0.0.1:8000/solution", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(chosen)
-    })
-    let data4 = await response4.json()
-    document.getElementById("output").innerHTML = JSON.stringify(data4)
-    expoblue = data4
-    let expoBody = {
-        context: expocon,
-        recommendations: {recommendations: currentRecommendations},
-        blueprint: expoblue
-    }
+    try
+    {
+        let data4 = await callapi("/solution", chosen)
+        document.getElementById("output").innerHTML = JSON.stringify(data4)
+        expoblue = data4
+        let expoBody = {
+            context: expocon,
+            recommendations: {recommendations: currentRecommendations},
+            blueprint: expoblue
+        }
 
-    let response5= await fetch("http://127.0.0.1:8000/export", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(expoBody)
-    })
-    let data5 = await response5.text()
-    document.getElementById("output").innerHTML = data5;
+        let response5 = await fetch(API_BASE + "/export", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(expoBody)
+        })
+        let data5 = await response5.text()
+
+        let blob = new Blob([data5], {type: "text/markdown"})
+        let url = URL.createObjectURL(blob)
+        let link = document.createElement("a")
+        link.href = url
+        link.download = "solution.md"
+        link.click()
+        setTimeout(function ()
+        {
+            URL.revokeObjectURL(url)
+        }, 1000)
+    }
+    catch (error)
+    {
+        console.error("solution/export failed:", error)
+        document.getElementById("output").innerHTML = error.message
+    }
 })

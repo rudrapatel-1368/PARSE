@@ -162,7 +162,8 @@ def export(data: ExportRequest):
 ## Recommendations
 {rec_lines}
 
-## Selected Solution: {data.blueprint.solution_name}
+## Selected
+#  Solution: {data.blueprint.solution_name}
 {comp_lines}
 
 ### Diagram
