@@ -19,9 +19,9 @@ async function callapi(path, body)
 
     let data = await response.json()
 
-    if (data.Error)
+    if (data.error)
     {
-        throw new Error(data.Error)
+        throw new Error(data.error)
     }
 
     return data
@@ -64,6 +64,11 @@ async function structure()
 
 async function recommend()
 {
+    let ingested = await read()
+    if (!ingested)
+    {
+        return
+    }
     let value = await structure()
     if (!value)
     {
@@ -91,7 +96,6 @@ function showRecommendations(recommendations)
     currentRecommendations = recommendations
 }
 
-selected.addEventListener("click", read)
 selected.addEventListener("click", recommend)
 
 document.getElementById("output").addEventListener("click", async function(event) {
