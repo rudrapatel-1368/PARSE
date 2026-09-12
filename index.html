@@ -1,20 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>PARSE</title>
-        <link rel="stylesheet" href="style.css">
-    </head>
-    <body>
-        <header>
-            <h1>PARSE</h1>
-            <h3>Build what you think......solve what you worry.</h3>
-        </header>
-            <section class="text-submit">
-                <pre id="output"></p>
-                <textarea id="input"></textarea>
-                <button id="selected">submit</button>
-        </section>
-        <script src="script.js"></script>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARSE — Business Transformation AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ page load shimmer ============ -->
+<div id="page-loader">
+    <span class="shimmer">PARSE</span>
+</div>
+
+<!-- ============ nav ============ -->
+<nav id="nav">
+    <a href="#home" class="brand">PARSE</a>
+    <ul class="nav-links">
+        <li><a href="#home" class="nav-link is-active">Home</a></li>
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#contact" class="nav-link">Contact</a></li>
+    </ul>
+</nav>
+
+<!-- ============ hero ============ -->
+<section id="home" class="hero">
+    <div class="hero-head">
+        <div>
+            <h1 class="wordmark">PARSE</h1>
+            <p class="tagline">Build what you think. Solve what you worry.</p>
+        </div>
+    </div>
+
+    <!-- results sit ABOVE the input, and take over the space PARSE vacates -->
+    <section id="results" class="results">
+        <div id="loader" class="loader" hidden>
+            <span class="shimmer">PARSE is thinking...</span>
+        </div>
+        <div id="output"></div>
+    </section>
+
+    <!-- expanding dock: collapsed button -> wide textarea -->
+    <div class="dock" id="dock">
+        <button class="dock-trigger" id="dock-trigger" aria-label="Describe your business" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+            </svg>
+        </button>
+
+        <div class="dock-panel" id="dock-panel">
+            <div class="dock-panel-top">
+                <svg class="dock-panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+                </svg>
+                <textarea id="input" rows="1" placeholder="I run a law firm and my team wastes time reading unimportant emails, so we miss the important ones..."></textarea>
+                <button class="dock-close" id="dock-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="dock-panel-bottom">
+                <span class="dock-hint">A sentence or two is plenty</span>
+                <button id="selected" class="btn-accent">Analyze</button>
+            </div>
+        </div>
+    </div>
+
+    <p class="hero-hint">First time here? <a href="#about">See how it works</a></p>
+</section>
+
+<!-- ============ about: kinetic reveal + pinned pipeline ============ -->
+<section id="about" class="about">
+    <p id="kinetic" class="kinetic">Describe your business in plain English. Get back something a developer can actually build.</p>
+
+    <div class="tags">
+        <div class="tag" style="--tag-bg:#d9ae94; --tag-fg:#14150f;">Five validated stages</div>
+        <div class="tag" style="--tag-bg:#ffcb69; --tag-fg:#23261c;">Runs on Gemini</div>
+        <div class="tag" style="--tag-bg:#d08c60; --tag-fg:#14150f;">Not a chatbot wrapper</div>
+        <div class="tag" style="--tag-bg:#9b9b7a; --tag-fg:#14150f;">Hand it to a developer</div>
+    </div>
+
+    <p class="about-sub">Scroll on — the whole pipeline is below.</p>
+
+    <div class="pin-wrap" id="pin-wrap">
+        <div class="pin-underlay"></div>
+        <div class="pin-box" id="pin-box">
+            <div class="pin-teaser" id="pin-teaser">How?</div>
+            <div class="pipeline">
+                <h2 class="pipeline-title">How PARSE works</h2>
+                <p class="pipeline-lead">Each stage has one job, a defined input, and a validated output — so the AI reasons inside a structure instead of free-associating at you.</p>
+                <ol class="stages">
+                    <li class="stage">
+                        <span class="stage-num">1</span>
+                        <h3>Ingest</h3>
+                        <p class="stage-flow">INPUT</p>
+                        <p>Your description comes in as plain text and gets checked for enough substance to work with. No AI call.</p>
+                    </li>
+                    <li class="stage">
+                        <span class="stage-num">2</span>
+                        <h3>Structure</h3>
+                        <p class="stage-flow">UNDERSTAND</p>
+                        <p>Industry, pain points, goals, and constraints are pulled out into a consistent schema.</p>
+                    </li>
+                    <li class="stage">
+                        <span class="stage-num">3</span>
+                        <h3>Recommend</h3>
+                        <p class="stage-flow">RECOMMEND</p>
+                        <p>Ranked suggestions, each required to cite the specific pain point or goal it addresses.</p>
+                    </li>
+                    <li class="stage">
+                        <span class="stage-num">4</span>
+                        <h3>Blueprint</h3>
+                        <p class="stage-flow">DESIGN</p>
+                        <p>The one you pick becomes components, a workflow, and an architecture diagram.</p>
+                    </li>
+                    <li class="stage">
+                        <span class="stage-num">5</span>
+                        <h3>Export</h3>
+                        <p class="stage-flow">EXPORT</p>
+                        <p>Everything assembled into a Markdown document you can download and hand off.</p>
+                    </li>
+                </ol>
+                <a href="#home" class="btn-accent pipeline-cta">Try it now</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ contact ============ -->
+<section id="contact" class="contact">
+    <h2>Contact</h2>
+    <p class="contact-lead">Solo portfolio project by a first-year CS student, built to learn backend and API development from scratch. The commit history is the real build log.</p>
+    <ul class="contact-links">
+        <li><a href="https://github.com/rudrapatel-1368/PARSE" target="_blank" rel="noopener">GitHub — the repo</a></li>
+        <li><a href="mailto:rudra1368patel@gmail.com">rudra1368patel@gmail.com</a></li>
+        <li><a href="https://www.linkedin.com/in/rudra-patel-b9a323414" target="_blank" rel="noopener">LinkedIn</a></li>
+    </ul>
+    <div class="signature">
+        <span class="signature-rule" aria-hidden="true"></span>
+        <p class="signature-name">— by Rudra Patel</p>
+        <p class="footer-note">PARSE — built with FastAPI, Pydantic, and Gemini.</p>
+    </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="script.js"></script>
+<script src="animations.js"></script>
+</body>
 </html>

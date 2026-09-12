@@ -1,7 +1,732 @@
-header{
+/* =========================================================================
+   PARSE — palette: warm earth tones on a warm near-black base.
+   Every colour below traces back to the 7 you picked; the two ink shades
+   are the base the palette needed and didn't have.
+   ========================================================================= */
+:root {
+    /* your palette */
+    --dusty-olive:    #797d62;
+    --palm-leaf:      #9b9b7a;
+    --desert-sand:    #d9ae94;
+    --soft-peach:     #f1dca7;
+    --golden-pollen:  #ffcb69;
+    --toasted-almond: #d08c60;
+    --dusty-taupe:    #997b66;
+
+    /* base (added - the palette is all mid-tones) */
+    --ink:    #14150f;
+    --ink-2:  #1b1d15;
+    --ink-3:  #23261c;
+
+    /* roles */
+    --text:      var(--soft-peach);
+    --text-dim:  var(--palm-leaf);
+    --accent:    var(--golden-pollen);
+    --line:      #32352a;
+    --text-faint: #8a8d74;   /* faintest tone that still clears WCAG AA on --ink */
+
+    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    --radius: 14px;
+    --radius-pill: 999px;
+    --wrap: 1100px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+}
+
+body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.1; margin: 0 0 .5em; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ============================ shimmer ============================ */
+/* one animation, reused by the page loader and the thinking state */
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        #6d7159 0%, #6d7159 35%,
+        var(--soft-peach) 50%,
+        #6d7159 65%, #6d7159 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 1.9s linear infinite;
+}
+
+@keyframes shimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shimmer { animation: none; color: var(--text-dim); -webkit-text-fill-color: currentColor; }
+    html { scroll-behavior: auto; }
+}
+
+/* ============================ page loader ============================ */
+#page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    background: var(--ink);
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 9vw, 5rem);
+    letter-spacing: .18em;
+    transition: opacity .55s ease, visibility .55s ease;
+}
+
+#page-loader.is-done { opacity: 0; visibility: hidden; }
+
+/* ============================ nav ============================ */
+#nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem clamp(1rem, 4vw, 3rem);
+    background: rgba(20, 21, 15, .72);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s ease, background .3s ease;
+}
+
+#nav.is-scrolled { border-bottom-color: var(--line); }
+
+.brand {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    letter-spacing: .22em;
+    color: var(--text);
+}
+.brand:hover { text-decoration: none; color: var(--accent); }
+
+.nav-links { display: flex; gap: clamp(1rem, 3vw, 2.25rem); list-style: none; margin: 0; padding: 0; }
+
+.nav-link {
+    color: var(--text-dim);
+    font-size: .92rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .35rem 0;
+    border-bottom: 1px solid transparent;
+    transition: color .2s ease, border-color .2s ease;
+}
+.nav-link:hover { color: var(--text); text-decoration: none; }
+.nav-link.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ============================ hero ============================ */
+.hero {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    color: navy;
+    padding: 7rem clamp(1rem, 4vw, 2rem) 4rem;
+    position: relative;
 }
-body{
-    background-color: beige;
+
+/* a soft warm glow behind the wordmark */
+.hero::before {
+    content: "";
+    position: absolute;
+    top: 18%; left: 50%;
+    width: min(900px, 90vw);
+    aspect-ratio: 2 / 1;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(255, 203, 105, .10), transparent 68%);
+    pointer-events: none;
 }
+
+.wordmark {
+    font-size: clamp(4rem, 19vw, 13rem);
+    letter-spacing: .06em;
+    margin: 0;
+    color: var(--soft-peach);
+    position: relative;
+}
+
+.tagline {
+    color: var(--text-dim);
+    font-size: clamp(.95rem, 2vw, 1.2rem);
+    letter-spacing: .04em;
+    margin: .25rem 0 2.75rem;
+}
+
+.hero-hint { margin-top: 2rem; color: var(--text-dim); font-size: .9rem; }
+
+/* ============================ expanding dock ============================ */
+.dock { display: grid; place-items: center; width: 100%; }
+
+.dock-trigger {
+    width: 56px; height: 56px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--ink-3);
+    color: var(--text);
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease, border-color .2s ease;
+}
+.dock-trigger svg { width: 22px; height: 22px; }
+.dock-trigger:hover { background: var(--ink-2); border-color: var(--dusty-olive); transform: scale(1.05); }
+.dock.is-open .dock-trigger { display: none; }
+
+.dock-panel { display: none; width: min(680px, 94vw); }
+
+.dock.is-open .dock-panel {
+    display: block;
+    background: rgba(35, 38, 28, .82);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    text-align: left;
+    overflow: hidden;
+    animation: dockOpen .42s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@keyframes dockOpen {
+    from { opacity: 0; transform: scale(.94); max-width: 70px; }
+    to   { opacity: 1; transform: scale(1);   max-width: 680px; }
+}
+
+.dock-panel-top { display: flex; align-items: flex-start; gap: .75rem; padding: 1rem 1rem .5rem; }
+.dock-panel-icon { width: 18px; height: 18px; margin-top: .45rem; color: var(--text-dim); flex: none; }
+
+#input {
+    flex: 1;
+    min-height: 2.5rem;
+    max-height: 40vh;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.55;
+    resize: none;
+    outline: none;
+    /* hidden by default - animations.js flips this to auto only once the
+       text actually exceeds max-height, so no stub scrollbar appears */
+    overflow-y: hidden;
+}
+#input::placeholder { color: var(--text-faint); }
+
+.dock-close {
+    flex: none;
+    width: 32px; height: 32px;
+    display: grid; place-items: center;
+    border: none; border-radius: 50%;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+}
+.dock-close svg { width: 16px; height: 16px; }
+.dock-close:hover { background: var(--ink); color: var(--text); }
+
+.dock-panel-bottom {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: .5rem 1rem 1rem;
+}
+.dock-hint { color: var(--text-dim); font-size: .82rem; }
+
+.btn-accent {
+    display: inline-block;
+    padding: .6rem 1.4rem;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: #23261c;
+    font-family: inherit;
+    font-size: .95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease, transform .12s ease;
+}
+.btn-accent:hover { background: var(--desert-sand); text-decoration: none; }
+.btn-accent:active { transform: scale(.97); }
+.btn-accent:disabled { opacity: .55; cursor: not-allowed; }
+
+/* ============ hero head: collapses away when results arrive ============ */
+/* grid-template-rows 1fr -> 0fr is animatable, which gives a real collapse
+   instead of a max-height guess. */
+.hero-head {
+    display: grid;
+    grid-template-rows: 1fr;
+    overflow: hidden;
+    transition: grid-template-rows .65s cubic-bezier(.4, 0, .2, 1),
+                opacity .4s ease,
+                transform .65s cubic-bezier(.4, 0, .2, 1),
+                margin-bottom .65s ease;
+}
+.hero-head > div { min-height: 0; }
+
+.hero.has-results .hero-head {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: translateY(-28px) scale(.94);
+    margin-bottom: -1rem;
+    pointer-events: none;
+}
+
+/* ============================ results ============================ */
+.results {
+    width: min(900px, 100%);
+    margin: 0 auto;
+    /* hidden until there is something to show, then fades in AFTER the
+       wordmark has collapsed (hence the delay) */
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(18px);
+    pointer-events: none;
+    transition: opacity .5s ease .3s, transform .55s ease .3s;
+}
+
+.hero.has-results .results,
+.results:has(#loader:not([hidden])) {
+    max-height: none;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    margin-bottom: 2.5rem;
+}
+
+.loader {
+    text-align: center;
+    padding: 2.5rem 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 3.5vw, 1.9rem);
+    letter-spacing: .02em;
+}
+
+#output { color: var(--text); }
+#output:empty { display: none; }
+
+/* script.js writes recommendation <button>s and JSON strings into #output */
+#output:not(:empty) {
+    margin-bottom: 4rem;
+    padding: 1.5rem;
+    background: var(--ink-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow-wrap: anywhere;
+    font-size: .95rem;
+}
+
+#output button {
+    display: block;
+    width: 100%;
+    margin: 0 0 .75rem;
+    padding: 1.1rem 1.25rem;
+    text-align: left;
+    background: var(--ink-3);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--dusty-olive);
+    border-radius: 10px;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: border-left-color .2s ease, background .2s ease, transform .15s ease;
+}
+#output button:hover {
+    background: #282c20;
+    border-left-color: var(--accent);
+    transform: translateX(3px);
+}
+#output button::after { content: " →"; color: var(--text-dim); }
+
+/* ============================ about ============================ */
+.about { padding: 8rem 0 0; }
+
+.kinetic {
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 5.5vw, 4rem);
+    line-height: 1.12;
+    color: var(--text);
+}
+
+.kinetic .word { display: inline-block; transform-origin: left center; margin-right: .22em; will-change: transform, opacity; }
+
+.tags {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: .75rem;
+    max-width: 900px;
+    margin: 3rem auto 0;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+}
+
+.tag {
+    padding: .6rem 1.4rem;
+    border-radius: var(--radius-pill);
+    background: var(--tag-bg);
+    color: var(--tag-fg);
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
+    font-weight: 600;
+    opacity: 0;
+    clip-path: polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%);
+    will-change: clip-path, opacity;
+}
+
+.about-sub { text-align: center; color: var(--text-dim); margin: 3rem 0 6rem; font-size: .95rem; }
+
+/* pinned expanding reveal */
+.pin-wrap {
+    position: relative;
+    width: 100%;
+    height: 100svh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--ink);
+}
+
+.pin-underlay { position: absolute; inset: 0; background: var(--ink); z-index: 1; pointer-events: none; }
+
+.pin-box {
+    position: relative;
+    z-index: 2;
+    width: 100%; height: 100%;
+    display: grid;
+    place-items: center;
+    /* warm centre so the expanding circle's edge is actually visible
+       against --ink; a flat --ink-2 was too close to read. */
+    background: radial-gradient(circle at 50% 50%, #2b2f21 0%, #20241a 45%, var(--ink) 88%);
+    will-change: clip-path;
+}
+
+.pipeline {
+    max-width: var(--wrap);
+    padding: 2rem clamp(1rem, 4vw, 2rem);
+    text-align: center;
+}
+
+.pipeline-title { font-size: clamp(1.75rem, 4vw, 2.75rem); }
+.pipeline-lead { max-width: 640px; margin: 0 auto 2.5rem; color: var(--text-dim); font-size: clamp(.9rem, 1.5vw, 1.05rem); }
+
+.stages {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: .85rem;
+    list-style: none;
+    margin: 0 0 2.25rem;
+    padding: 0;
+    text-align: left;
+}
+
+.stage {
+    position: relative;
+    padding: 1.1rem .9rem;
+    background: var(--ink-3);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+/* connecting arrows between stage cards */
+.stage:not(:last-child)::after {
+    content: "→";
+    position: absolute;
+    top: 50%; right: -.72rem;
+    transform: translateY(-50%);
+    color: var(--dusty-olive);
+    font-size: 1rem;
+    z-index: 3;
+}
+
+.stage-num {
+    display: grid; place-items: center;
+    width: 26px; height: 26px;
+    margin-bottom: .6rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #23261c;
+    font-size: .82rem;
+    font-weight: 700;
+}
+
+.stage h3 { font-size: 1.05rem; margin-bottom: .15rem; }
+
+.stage-flow {
+    margin: 0 0 .5rem;
+    color: var(--toasted-almond);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+}
+
+.stage p:not(.stage-flow) { margin: 0; color: var(--text-dim); font-size: .82rem; line-height: 1.45; }
+
+.pipeline-cta { margin-top: .5rem; }
+
+/* ============================ contact ============================ */
+.contact {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 8rem clamp(1rem, 4vw, 2rem) 6rem;
+    text-align: center;
+}
+
+.contact h2 { font-size: clamp(1.9rem, 5vw, 3rem); }
+.contact-lead { color: var(--text-dim); margin-bottom: 2.5rem; }
+
+.contact-links { list-style: none; margin: 0 0 4rem; padding: 0; display: grid; gap: .75rem; }
+
+.contact-links a {
+    display: block;
+    padding: .95rem 1.25rem;
+    background: var(--ink-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--text);
+    transition: border-color .2s ease, background .2s ease;
+}
+.contact-links a:hover { border-color: var(--accent); background: var(--ink-3); text-decoration: none; }
+
+
+/* ============================ responsive ============================ */
+@media (max-width: 900px) {
+    /* pinning 5 stages into one screen doesn't work on a phone:
+       animations.js skips the GSAP pin below this width and this lets the
+       section lay out as a normal stacked block instead. */
+    .pin-wrap { height: auto; overflow: visible; }
+    .pin-box { clip-path: none !important; height: auto; padding: 3rem 0; }
+    .stages { grid-template-columns: 1fr; }
+    .stage:not(:last-child)::after {
+        top: auto; right: auto; bottom: -.78rem; left: 1.35rem;
+        transform: rotate(90deg);
+    }
+    .kinetic { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+    .about { padding-top: 5rem; }
+    .about-sub { margin-bottom: 3rem; }
+}
+
+@media (max-width: 520px) {
+    .nav-links { gap: 1rem; }
+    .nav-link { font-size: .8rem; }
+    .brand { font-size: 1.1rem; }
+    .dock-panel-bottom { flex-direction: column; align-items: stretch; }
+    .dock-panel-bottom .btn-accent { width: 100%; }
+}
+
+/* ============================ no-gsap fallback ============================ */
+/* If the GSAP CDN is blocked or the visitor prefers reduced motion,
+   animations.js adds .no-gsap and everything below becomes plain-visible
+   instead of stuck at opacity:0. */
+.no-gsap .tag { opacity: 1; clip-path: none; }
+.no-gsap .kinetic .word { opacity: 1 !important; transform: none !important; }
+.no-gsap .pin-wrap { height: auto; overflow: visible; }
+.no-gsap .pin-box { clip-path: none !important; height: auto; padding: 3rem 0; }
+
+/* ============================ blueprint rendering ============================ */
+/* Replaces the raw JSON dump. animations.js builds this markup from the
+   object script.js gets back from /solution. */
+.bp { text-align: left; }
+
+.bp-title {
+    font-size: clamp(1.35rem, 3vw, 1.9rem);
+    color: var(--soft-peach);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.bp-section { margin-bottom: 1.75rem; }
+.bp-section:last-child { margin-bottom: 0; }
+
+.bp-section h4 {
+    margin: 0 0 .85rem;
+    color: var(--toasted-almond);
+    font-family: var(--font-body);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+/* components: tidy tag list */
+.bp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .55rem; }
+
+.bp-list li {
+    padding: .45rem .9rem;
+    background: var(--ink-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    font-size: .88rem;
+    color: var(--text);
+}
+
+/* workflow: numbered steps */
+.bp-steps { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+
+.bp-steps li {
+    counter-increment: step;
+    position: relative;
+    padding: 0 0 1rem 2.4rem;
+    color: var(--text);
+    font-size: .94rem;
+    line-height: 1.55;
+}
+
+.bp-steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: .05rem;
+    display: grid;
+    place-items: center;
+    width: 1.6rem; height: 1.6rem;
+    border-radius: 50%;
+    background: var(--dusty-olive);
+    color: var(--soft-peach);
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+/* diagram */
+.bp-diagram {
+    padding: 1.25rem;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow-x: auto;
+    text-align: center;
+}
+.bp-diagram svg { max-width: 100%; height: auto; }
+
+/* shown if mermaid is unavailable or the diagram syntax is bad */
+.bp-fallback {
+    margin: 0;
+    text-align: left;
+    color: var(--text-dim);
+    font-size: .82rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+    .bp-list { flex-direction: column; }
+    .bp-list li { border-radius: 10px; }
+}
+
+/* ============================ scrollbars ============================ */
+/* Default OS scrollbars are a light grey slab with arrow buttons, which
+   looks wrong against the warm near-black. Styled in palette colours;
+   styling ::-webkit-scrollbar-button is what removes the arrows. */
+
+/* modern standard (Firefox, and Chrome 121+) */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dusty-olive) var(--ink);
+}
+
+#input, #output, .bp-diagram {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dusty-olive) transparent;
+}
+
+/* WebKit/Blink */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+
+::-webkit-scrollbar-thumb {
+    background: var(--dusty-olive);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--palm-leaf); }
+::-webkit-scrollbar-corner { background: var(--ink); }
+
+/* no arrow buttons */
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+/* inner scrollers sit on a lighter surface, so their track is transparent */
+#input::-webkit-scrollbar,
+#output::-webkit-scrollbar,
+.bp-diagram::-webkit-scrollbar { width: 8px; height: 8px; }
+
+#input::-webkit-scrollbar-track,
+#output::-webkit-scrollbar-track,
+.bp-diagram::-webkit-scrollbar-track { background: transparent; }
+
+#input::-webkit-scrollbar-thumb,
+#output::-webkit-scrollbar-thumb,
+.bp-diagram::-webkit-scrollbar-thumb {
+    background: var(--dusty-taupe);
+    border: none;
+    border-radius: 999px;
+}
+
+#input::-webkit-scrollbar-thumb:hover,
+#output::-webkit-scrollbar-thumb:hover,
+.bp-diagram::-webkit-scrollbar-thumb:hover { background: var(--desert-sand); }
+
+/* ============================ pin teaser ("How?") ============================ */
+/* Sits inside the small starting circle. animations.js fades it out over the
+   first fifth of the pin scroll while the pipeline fades in behind it. */
+.pin-teaser {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 4;
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 5vw, 4rem);
+    color: var(--soft-peach);
+    letter-spacing: .02em;
+    pointer-events: none;
+    will-change: opacity, transform;
+}
+
+/* no scroll animation to fade it, so it would just sit there forever */
+.no-gsap .pin-teaser { display: none; }
+
+@media (max-width: 900px) {
+    .pin-teaser { display: none; }
+}
+
+/* ============================ signature ============================ */
+.signature { margin-top: 1rem; }
+
+/* hairline that fades out at both ends */
+.signature-rule {
+    display: block;
+    width: 90px;
+    height: 1px;
+    margin: 0 auto 1.75rem;
+    background: linear-gradient(90deg, transparent, var(--dusty-olive), transparent);
+}
+
+.signature-name {
+    margin: 0 0 .85rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.3rem, 3vw, 1.75rem);
+    font-style: italic;
+    letter-spacing: .03em;
+    color: white;
+}
+
+.footer-note { margin: 0; color: var(--text-faint); font-size: .82rem; }

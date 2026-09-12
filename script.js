@@ -109,7 +109,7 @@ document.getElementById("output").addEventListener("click", async function(event
     try
     {
         let data4 = await callapi("/solution", chosen)
-        document.getElementById("output").innerHTML = JSON.stringify(data4)
+        renderBlueprint(data4)
         expoblue = data4
         let expoBody = {
             context: expocon,
