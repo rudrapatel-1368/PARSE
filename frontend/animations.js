@@ -243,7 +243,13 @@ else
    All the markup building lives here so the pipeline code stays clean.
    ========================================================================= */
 
-if (window.mermaid)
+// Mermaid is ~1.5 MB gzipped - far and away the heaviest thing on the page,
+// and most visitors never run a query. So it is fetched on demand, the first
+// time a blueprint actually has a diagram to draw.
+let MERMAID_SRC = "https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"
+let mermaidLoader = null
+
+function initMermaid()
 {
     mermaid.initialize({
         startOnLoad: false,
@@ -262,6 +268,25 @@ if (window.mermaid)
             fontSize: "14px"
         }
     })
+}
+
+// resolves true if mermaid is usable, false if the CDN is unreachable
+function loadMermaid()
+{
+    if (mermaidLoader) { return mermaidLoader }
+
+    mermaidLoader = new Promise(function (resolve)
+    {
+        if (window.mermaid) { initMermaid(); return resolve(true) }
+
+        let tag = document.createElement("script")
+        tag.src = MERMAID_SRC
+        tag.onload = function () { initMermaid(); resolve(true) }
+        tag.onerror = function () { resolve(false) }
+        document.head.appendChild(tag)
+    })
+
+    return mermaidLoader
 }
 
 // Gemini's text goes into innerHTML, so it gets escaped first.
@@ -312,15 +337,22 @@ function drawDiagram(source)
 
     function showSource()
     {
-        host.innerHTML = '<pre class="bp-fallback">' + escapeHtml(source) + "</pre>"
+        if (host.isConnected) { host.innerHTML = '<pre class="bp-fallback">' + escapeHtml(source) + "</pre>" }
     }
 
-    if (!window.mermaid) { showSource(); return }
+    host.innerHTML = '<p class="bp-diagram-wait">Drawing diagram...</p>'
 
-    // unique id each time, or mermaid reuses a stale cached render
-    mermaid.render("bp-svg-" + Date.now(), source)
-        .then(function (result) { host.innerHTML = result.svg })
-        .catch(function () { showSource() })
+    loadMermaid().then(function (ready)
+    {
+        // a newer blueprint may have replaced this element while we waited
+        if (!host.isConnected) { return }
+        if (!ready) { return showSource() }
+
+        // unique id each time, or mermaid reuses a stale cached render
+        mermaid.render("bp-svg-" + Date.now(), source)
+            .then(function (result) { if (host.isConnected) { host.innerHTML = result.svg } })
+            .catch(showSource)
+    })
 }
 
 /* ---------- About links land where the pills are fully formed ----------

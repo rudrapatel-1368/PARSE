@@ -730,3 +730,17 @@ html {
 }
 
 .footer-note { margin: 0; color: var(--text-faint); font-size: .82rem; }
+
+/* ============================ focus ring ============================ */
+/* The browser default is a thin 1px outline that barely reads on the dark
+   base. Keyboard users need to see where they are. */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+/* pointer users don't get a ring, keyboard users do */
+:focus:not(:focus-visible) { outline: none; }
+
+/* shown while the diagram library is being fetched on demand */
+.bp-diagram-wait { margin: 0; color: var(--text-faint); font-size: .88rem; }

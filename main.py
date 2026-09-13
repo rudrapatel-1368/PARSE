@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi import Response
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ValidationError
 from dotenv import load_dotenv
 import os
@@ -51,12 +51,12 @@ genai.configure(api_key=Gkey)
 model = genai.GenerativeModel("gemini-3.6-flash")
 
 app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+# No CORS middleware: the frontend is served by this same app, so requests are
+# same-origin and never trigger a CORS check at all.
+# Worth knowing: CORS was never a security boundary anyway. It only stops OTHER
+# websites reading your responses inside a browser - curl and scripts ignore it
+# entirely. If this endpoint ever needs protecting, that job is rate limiting.
 
 
 def clean_json(text):
@@ -71,10 +71,10 @@ def clean_json(text):
 
 #==================================== ENDPOINTS =====================================#
 
-#This will run at the start
-@app.get("/")
-#The "/" is just a fixed symbol for the front end to use to call the function below it
-def main():
+#Used to be "/" - the website itself is served there now, so this moved.
+#Handy for a quick "is the backend alive?" check.
+@app.get("/health")
+def health():
     return {"message" : "Hi from the backend"}
 
 #********************************************** STAGE 1 *********************************************************#
@@ -189,3 +189,11 @@ def export(data: ExportRequest):
         media_type="text/markdown",
         headers={"Content-Disposition" : "attachment; filename=solution.md"}
     )
+
+
+#==================================== FRONTEND =====================================#
+# Serves index.html/css/js from the same origin as the API, so there is no
+# cross-origin request at all. Declared LAST on purpose: a mount at "/" matches
+# every path, so any route below it would be unreachable.
+# On Vercel these files are promoted to the CDN at build time.
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

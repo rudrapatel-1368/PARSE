@@ -1,4 +1,7 @@
-let API_BASE = "http://127.0.0.1:8000"
+// Empty string = "same site this page was loaded from".
+// Backend and frontend are served by the same app now, so fetch("/ingest")
+// works identically on localhost and in production.
+let API_BASE = ""
 let expoblue;
 let expocon;
 let currentRecommendations;
@@ -6,18 +9,38 @@ let selected = document.getElementById("selected")
 
 async function callapi(path, body)
 {
-    let response = await fetch(API_BASE + path, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(body)
-    })
+    let response
+
+    try
+    {
+        response = await fetch(API_BASE + path, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(body)
+        })
+    }
+    catch (networkError)
+    {
+        // fetch only throws on a genuine network failure, and its message is
+        // just "Failed to fetch" - useless to anyone who isn't the developer
+        throw new Error("Couldn't reach the server. Is the backend running?")
+    }
 
     if (!response.ok)
     {
         throw new Error("Server returned " + response.status + " for " + path)
     }
 
-    let data = await response.json()
+    let data
+
+    try
+    {
+        data = await response.json()
+    }
+    catch (parseError)
+    {
+        throw new Error("The server sent a response that wasn't valid JSON.")
+    }
 
     if (data.error)
     {
@@ -64,18 +87,29 @@ async function structure()
 
 async function recommend()
 {
-    let ingested = await read()
-    if (!ingested)
+    // Without this, clicking Analyze twice runs two whole pipelines side by
+    // side - four Gemini calls for one intent, and whichever finishes last
+    // wins the output.
+    if (selected.disabled)
     {
         return
     }
-    let value = await structure()
-    if (!value)
-    {
-        return
-    }
+    selected.disabled = true
+
     try
     {
+        let ingested = await read()
+        if (!ingested)
+        {
+            return
+        }
+
+        let value = await structure()
+        if (!value)
+        {
+            return
+        }
+
         let data3 = await callapi("/recommend", value)
         showRecommendations(data3.recommendations)
     }
@@ -83,6 +117,12 @@ async function recommend()
     {
         console.error("recommend failed:", error)
         document.getElementById("output").innerHTML = error.message
+    }
+    finally
+    {
+        // runs on success, on error, AND on the two early returns above -
+        // this is the job finally exists for
+        selected.disabled = false
     }
 }
 
@@ -98,14 +138,17 @@ function showRecommendations(recommendations)
 
 selected.addEventListener("click", recommend)
 
+let solving = false
+
 document.getElementById("output").addEventListener("click", async function(event) {
     let index = event.target.dataset.index
     console.log(index)
     let chosen = currentRecommendations[index]
-    if (!chosen)
+    if (!chosen || solving)
     {
         return
     }
+    solving = true
     try
     {
         let data4 = await callapi("/solution", chosen)
@@ -141,5 +184,9 @@ document.getElementById("output").addEventListener("click", async function(event
     {
         console.error("solution/export failed:", error)
         document.getElementById("output").innerHTML = error.message
+    }
+    finally
+    {
+        solving = false
     }
 })
