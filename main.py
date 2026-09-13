@@ -95,13 +95,19 @@ def str_context(data: BusinessInput):
 
     Business description: {data.raw_text}""" #Here the {data.text} is just a variable in which the input busness discription is stored.
 
-    responce = model.generate_content(prompt)
-
     try:
+        # the Gemini call belongs INSIDE the try: it can raise on rate limits,
+        # safety blocks, and network blips, and an uncaught raise here is a 500.
+        responce = model.generate_content(prompt)
         sturctured = json.loads(clean_json(responce.text))
         validated = StrContext(**sturctured)
     except (json.JSONDecodeError, ValidationError) as e:
         return {"error" : "Gemini didnt give a valid structure", "detail" : str(e), "raw" : responce.text}
+    except Exception as e:
+        # Broad on purpose - this is the boundary with a service I do not
+        # control. print() lands in the Vercel runtime logs.
+        print(f"/structure failed: {type(e).__name__}: {e}")
+        return {"error" : "The AI service didn't respond. Try again in a moment."}
 
     return validated
     #Any real api call will give you multiple things like token usage, meta data etc. with the text so we seperate it by using .
@@ -121,13 +127,15 @@ def recommend(data: StrContext):
     Goals: {data.goals}
     Constraints: {data.constraints}"""
 
-    response = model.generate_content(prompt)
-
     try:
+        response = model.generate_content(prompt)
         parsed = json.loads(clean_json(response.text))
         validated = RecommendationList(**parsed)
     except (json.JSONDecodeError, ValidationError) as e:
         return {"error": "Gemini didn't return a valid recommendation list", "detail": str(e), "raw": response.text}
+    except Exception as e:
+        print(f"/recommend failed: {type(e).__name__}: {e}")
+        return {"error": "The AI service didn't respond. Try again in a moment."}
 
     return validated
 
@@ -148,13 +156,15 @@ def solution(data: Recommendation):
     Reasoning: {data.reasoning}
     Priority: {data.priority}"""
 
-    response = model.generate_content(prompt)
-
     try:
+        response = model.generate_content(prompt)
         parsed = json.loads(clean_json(response.text))
         validated = SolBlueprint(**parsed)
     except (json.JSONDecodeError, ValidationError) as e:
         return {"error": "Gemini didn't return a valid solution blueprint", "detail": str(e), "raw": response.text}
+    except Exception as e:
+        print(f"/solution failed: {type(e).__name__}: {e}")
+        return {"error": "The AI service didn't respond. Try again in a moment."}
 
     return validated
 
