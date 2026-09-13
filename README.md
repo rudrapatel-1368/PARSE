@@ -2,19 +2,17 @@
 
 **Business Transformation AI** — describe your business in plain English, get back a concrete implementation plan.
 
+**🔗 Live: [parse-ashen.vercel.app](https://parse-ashen.vercel.app)**
+
 Not a thin wrapper around a chatbot. PARSE runs your input through a five-stage pipeline where each stage has one job, a defined input shape, and a validated output shape — so the AI reasons within a structure instead of free-associating at you.
 
 ---
 
-## The problem it solves
+## What it does
 
-Most small businesses know *something* is inefficient. What they don't have is:
+Most small businesses know *something* is inefficient. What they usually don't have is the technical vocabulary to describe what an automation solution would even look like, the budget for a consultant to figure it out for them, or anything actionable from generic "AI can help your business!" advice.
 
-- the technical vocabulary to describe what an automation solution would even look like
-- the budget for a consultant to figure it out for them
-- anything actionable from generic "AI can help your business!" advice
-
-PARSE compresses that discovery process into a few minutes and — the part that matters — ends with something concrete: a solution design, an architecture diagram, and a document you can hand to a developer.
+PARSE takes a plain-text description of a business and its problems, and turns it into a structured analysis, ranked recommendations, a solution blueprint with an architecture diagram, and a downloadable Markdown document you can hand to a developer.
 
 ---
 
@@ -40,7 +38,7 @@ flowchart LR
 | 4 · Blueprint | `POST /solution` | Turns a chosen recommendation into components, a workflow, and a Mermaid architecture diagram. |
 | 5 · Export | `POST /export` | Assembles everything into a downloadable Markdown document. |
 
-Each stage validates its input and output against a Pydantic model, so a malformed LLM response fails immediately and visibly — at the stage that produced it — rather than quietly corrupting something three steps later.
+Each stage validates its input and output against a Pydantic model, so a malformed LLM response fails immediately and visibly — at the stage that produced it — rather than quietly corrupting something three steps later. This is the actual differentiator: the business logic (what counts as a valid recommendation, what a blueprint must contain) is enforced in code, not left to a prompt's good behavior.
 
 ---
 
@@ -80,6 +78,16 @@ flowchart TD
 
 ---
 
+## Stack
+
+- **Python + FastAPI** — endpoints, request/response handling
+- **Pydantic** — schema definitions and validation at every stage boundary
+- **Gemini** (`gemini-3.6-flash`) — the LLM behind stages 2, 3, and 4
+- **Plain HTML/CSS/JS** — no framework; GSAP for the pipeline reveal animation, Mermaid (lazy-loaded) for diagram rendering
+- **Vercel** — single deployment, same origin for frontend and API (no CORS needed)
+
+---
+
 ## Running it locally
 
 **Requires:** Python 3.10+ and a Gemini API key ([Google AI Studio](https://aistudio.google.com), free tier works).
@@ -87,7 +95,7 @@ flowchart TD
 ```bash
 git clone https://github.com/rudrapatel-1368/PARSE.git
 cd PARSE
-pip install fastapi uvicorn python-dotenv google-generativeai
+pip install -r requirements.txt
 ```
 
 Create a `.env` file in the project root:
@@ -100,30 +108,10 @@ Start the server:
 python -m uvicorn main:app --reload
 ```
 
-Then open **http://127.0.0.1:8000/docs** — FastAPI's auto-generated interface, where you can run every endpoint and see real responses without writing a line of frontend code.
+Open **http://127.0.0.1:8000** for the site, or **http://127.0.0.1:8000/docs** for FastAPI's auto-generated API explorer — run every endpoint and see real responses without touching the frontend.
 
 ---
 
-## Stack
+## License
 
-- **Python + FastAPI** — endpoints, request/response handling
-- **Pydantic** — schema definitions and validation at every stage boundary
-- **Gemini** — the LLM behind stages 2, 3, and 4
-- **Frontend** — not built yet (see below)
-
----
-
-## Status
-
-Backend: **complete**, all five stages built and verified end-to-end.
-
-Still to come:
-- Frontend (plain HTML/CSS/JS)
-- CORS configuration for browser access
-- Optional refactor to a backend-orchestrated pipeline (currently each stage is called independently, which keeps them separately testable)
-
----
-
-## About
-
-Solo portfolio project by a first-year CS student, built to learn backend and API development from scratch — no prior web experience going in. Commit history is the real build log.
+No license file yet — all rights reserved by default. Open an issue if you want to use this and I'll sort out a license.
