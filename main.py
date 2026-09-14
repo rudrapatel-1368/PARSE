@@ -52,13 +52,6 @@ model = genai.GenerativeModel("gemini-3.6-flash")
 
 app = FastAPI()
 
-# No CORS middleware: the frontend is served by this same app, so requests are
-# same-origin and never trigger a CORS check at all.
-# Worth knowing: CORS was never a security boundary anyway. It only stops OTHER
-# websites reading your responses inside a browser - curl and scripts ignore it
-# entirely. If this endpoint ever needs protecting, that job is rate limiting.
-
-
 def clean_json(text):
     text = text.strip()
     if text.startswith("```"):
